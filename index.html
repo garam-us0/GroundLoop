@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>UTOPIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          utgreen:  '#12362A',
+          utgreen2: '#1F5B3F',
+          utgreen3: '#3F7C5B',
+          utmint:   '#E8F1EA',
+          utamber:  '#E29A3B',
+          utamber2: '#FBEBCF',
+          utcream:  '#F4EFE3',
+          utink:    '#182821',
+          utsub:    '#5C6E64'
+        },
+        fontFamily: {
+          display: ['Fraunces', 'Noto Sans KR', 'serif'],
+          sans: ['Noto Sans KR', 'system-ui', 'sans-serif']
+        },
+        boxShadow: {
+          soft: '0 10px 30px -12px rgba(18,54,42,0.28)',
+          card: '0 2px 10px -2px rgba(18,54,42,0.10)',
+          pop:  '0 24px 60px -18px rgba(18,54,42,0.45)'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root{
+    --bg-studio:#EDE7D8;
+    --frame:#0F241B;
+    --ring: rgba(18,54,42,0.10);
+  }
+  *{ -webkit-tap-highlight-color: transparent; }
+  html,body{ background: var(--bg-studio); }
+  body{ font-family:'Noto Sans KR', system-ui, sans-serif; color:#182821; }
+  .font-display{ font-family:'Fraunces','Noto Sans KR',serif; }
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+  .tabular{ font-variant-numeric: tabular-nums; }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; animation: rise .38s cubic-bezier(.22,.61,.36,1); }
+  @keyframes rise{ from{ opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  .phone{
+    width:100%; max-width:412px; height:860px;
+    background:#fff; border-radius:44px;
+    box-shadow: 0 40px 90px -28px rgba(15,36,27,0.55), 0 2px 0 rgba(255,255,255,0.6) inset;
+    border: 10px solid var(--frame);
+    position:relative; overflow:hidden;
+  }
+  .notch{
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:120px; height:26px; background:var(--frame); border-radius:16px; z-index:40;
+  }
+  .statusbar{ height:46px; }
+
+  .navtab{ position:relative; transition: color .2s ease; }
+  .navtab .navdot{ width:5px; height:5px; border-radius:999px; background:#E29A3B; position:absolute; top:-3px; left:50%; transform:translateX(-50%); opacity:0; transition:opacity .2s ease; }
+  .navtab.active{ color:#12362A; }
+  .navtab.active .navdot{ opacity:1; }
+  .navtab .navicon{ transition: transform .2s ease; }
+  .navtab.active .navicon{ transform: translateY(-1px); }
+
+  .gauge-ring{
+    background: conic-gradient(#E29A3B calc(var(--pct)*1%), #EFE6D2 0);
+    border-radius:999px;
+  }
+
+  .stamp-slot{ transition: all .25s cubic-bezier(.22,.61,.36,1); }
+  .stamp-slot.filled{ background:#12362A; border-color:#12362A; }
+  .stamp-slot.filled svg{ stroke:#F4EFE3; }
+
+  .tabbtn{ position:relative; }
+  .tabbtn .tabline{ position:absolute; left:14px; right:14px; bottom:-1px; height:2px; background:#12362A; transform:scaleX(0); transition:transform .25s ease; transform-origin:left; }
+  .tabbtn.active{ color:#12362A; font-weight:700; }
+  .tabbtn:not(.active){ color:#9AA79E; }
+
+  .pin{ animation: bob 2.6s ease-in-out infinite; }
+  .pin.pin-2{ animation-delay:.5s; } .pin.pin-3{ animation-delay:1s; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+
+  .toast{
+    position:absolute; left:50%; bottom:104px; transform:translateX(-50%) translateY(10px);
+    opacity:0; pointer-events:none; transition: all .28s cubic-bezier(.22,.61,.36,1); z-index:70;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .modal-backdrop{ position:absolute; inset:0; background:rgba(15,30,23,0.55); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:80; }
+  .modal-backdrop.show{ opacity:1; pointer-events:auto; }
+  .modal-card{ transform:translateY(24px) scale(.96); opacity:0; transition: all .32s cubic-bezier(.22,.61,.36,1); }
+  .modal-backdrop.show .modal-card{ transform:translateY(0) scale(1); opacity:1; }
+
+  .pressable{ transition: transform .12s ease, box-shadow .12s ease; }
+  .pressable:active{ transform: scale(0.97); }
+
+  .heat-map{
+    background:
+      radial-gradient(120px 90px at 24% 30%, rgba(63,124,91,0.35), transparent 60%),
+      radial-gradient(140px 100px at 78% 22%, rgba(63,124,91,0.28), transparent 60%),
+      radial-gradient(160px 130px at 55% 70%, rgba(63,124,91,0.30), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(18,54,42,0.05) 0px, rgba(18,54,42,0.05) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(90deg, rgba(18,54,42,0.05) 0px, rgba(18,54,42,0.05) 1px, transparent 1px, transparent 34px),
+      #E4EEE4;
+  }
+
+  .bars > div{ transition: height .6s cubic-bezier(.22,.61,.36,1); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 gap-4">
+
+  <div class="phone" id="phone">
+    <div class="notch"></div>
+
+    <!-- status bar -->
+    <div class="statusbar w-full flex items-center justify-between px-8 pt-3 text-[12px] font-semibold text-utink tabular relative z-30">
+      <span id="clock">10:10</span>
+      <div class="flex items-center gap-1">
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <i data-lucide="battery-full" class="w-4 h-4"></i>
+      </div>
+    </div>
+
+    <!-- app root -->
+    <div id="app-root" class="absolute inset-0 top-[46px] bottom-0 overflow-y-auto no-scrollbar">
+
+      <!-- ============ LOGIN ============ -->
+      <section id="screen-login" class="screen active min-h-full bg-gradient-to-b from-utgreen via-utgreen to-[#0F241B] text-white flex flex-col">
+        <div class="flex-1 flex flex-col items-center justify-center px-9 pb-16">
+          <div class="w-16 h-16 rounded-2xl bg-utamber/90 flex items-center justify-center shadow-soft mb-5">
+            <i data-lucide="leaf" class="w-8 h-8 text-utgreen"></i>
+          </div>
+          <h1 class="font-display text-[38px] tracking-tight leading-none">UTOPIA</h1>
+          <p class="text-white/60 text-[13px] mt-2 tracking-wide">카페 열선 수거함 기반 자원순환 플랫폼</p>
+
+          <div class="w-full mt-14 space-y-6">
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p class="font-display text-xl text-utamber tabular">1,420<span class="text-xs align-top">kg</span></p>
+                <p class="text-[11px] text-white/50 mt-1">누적 건조 수거</p>
+              </div>
+              <div class="border-x border-white/10">
+                <p class="font-display text-xl text-utamber tabular">420<span class="text-xs align-top">kg</span></p>
+                <p class="text-[11px] text-white/50 mt-1">CO₂eq 절감</p>
+              </div>
+              <div>
+                <p class="font-display text-xl text-utamber tabular">86</p>
+                <p class="text-[11px] text-white/50 mt-1">참여 카페</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 pb-10 space-y-3">
+          <p class="text-center text-white/45 text-[12px] mb-1">어떤 계정으로 시작할까요?</p>
+          <button onclick="selectRole('user')" class="pressable w-full bg-utamber text-utgreen font-bold rounded-2xl py-4 flex items-center justify-center gap-2 shadow-soft">
+            <i data-lucide="user-round" class="w-4 h-4"></i> 일반 사용자용
+          </button>
+          <button onclick="selectRole('admin')" class="pressable w-full bg-white/10 text-white font-bold rounded-2xl py-4 flex items-center justify-center gap-2 border border-white/15">
+            <i data-lucide="coffee" class="w-4 h-4"></i> 카페 점주용
+          </button>
+        </div>
+      </section>
+
+      <!-- ============ USER HOME ============ -->
+      <section id="screen-home" class="screen min-h-full bg-utcream pb-24">
+        <!-- countdown banner -->
+        <button onclick="bannerClick()" class="pressable w-full bg-utamber text-utgreen px-5 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-left">
+            <i data-lucide="timer" class="w-4 h-4 shrink-0"></i>
+            <span class="text-[12.5px] font-bold leading-tight">화요일 12:00 오픈! <span id="countdown-text" class="tabular">01:54</span> 후 쿠폰 오픈</span>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 shrink-0"></i>
+        </button>
+
+        <!-- header -->
+        <div class="flex items-center justify-between px-5 pt-4">
+          <span class="font-display text-lg text-utgreen">UTOPIA</span>
+          <div class="flex items-center gap-3">
+            <button class="pressable relative"><i data-lucide="bell" class="w-5 h-5 text-utgreen"></i><span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-utamber"></span></button>
+            <button class="pressable" onclick="goToScreen('admin')"><i data-lucide="user-round" class="w-5 h-5 text-utgreen"></i></button>
+          </div>
+        </div>
+
+        <!-- dashboard card -->
+        <div class="mx-5 mt-4 rounded-3xl bg-utgreen text-white p-5 shadow-card relative overflow-hidden">
+          <div class="absolute -right-6 -top-8 w-28 h-28 rounded-full bg-white/5"></div>
+          <p class="text-[12px] text-white/60">상수동 자원순환 현황 · 실시간</p>
+          <div class="mt-3 grid grid-cols-2 gap-4">
+            <div>
+              <p class="font-display text-[26px] tabular leading-none" id="stat-collected">1,420<span class="text-sm">kg</span></p>
+              <p class="text-[11px] text-white/55 mt-1.5">건조 커피박 수거량</p>
+            </div>
+            <div class="pl-4 border-l border-white/10">
+              <p class="font-display text-[26px] tabular leading-none text-utamber" id="stat-co2">420<span class="text-sm">kg</span></p>
+              <p class="text-[11px] text-white/55 mt-1.5">CO₂eq 절감량</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- stamp widget -->
+        <div class="mx-5 mt-4 rounded-3xl bg-white p-5 shadow-card">
+          <div class="flex items-center justify-between">
+            <p class="font-bold text-[14px]">3일 출석 스탬프</p>
+            <p class="text-[11px] text-utsub"><span id="stamp-count">0</span>/3 · Size-Up 쿠폰</p>
+          </div>
+          <div class="mt-3 flex items-center gap-3">
+            <div class="flex-1 grid grid-cols-3 gap-2" id="stamp-slots"></div>
+            <button onclick="tapStamp()" class="pressable shrink-0 w-11 h-11 rounded-full bg-utamber2 flex items-center justify-center">
+              <i data-lucide="stamp" class="w-5 h-5 text-utamber"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ranking -->
+        <div class="mx-5 mt-5 flex items-center justify-between">
+          <p class="font-bold text-[15px]">우리 동네 ESG 카페 랭킹</p>
+          <button onclick="goToScreen('map')" class="text-[11px] text-utsub flex items-center gap-0.5 pressable">지도에서 보기 <i data-lucide="chevron-right" class="w-3 h-3"></i></button>
+        </div>
+        <div class="mx-5 mt-2 rounded-3xl bg-white shadow-card divide-y divide-utcream" id="ranking-list"></div>
+
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ CAFE DETAIL ============ -->
+      <section id="screen-cafedetail" class="screen min-h-full bg-utcream pb-24">
+        <div class="flex items-center gap-3 px-4 pt-4">
+          <button onclick="goBack()" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center"><i data-lucide="arrow-left" class="w-4 h-4 text-utgreen"></i></button>
+          <p class="font-bold text-[15px]" id="cafe-title">UAC 카페</p>
+        </div>
+
+        <div class="mx-5 mt-4 rounded-3xl overflow-hidden shadow-card">
+          <div class="h-24 bg-gradient-to-r from-utgreen to-utgreen3 flex items-center px-5">
+            <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center"><i data-lucide="coffee" class="w-6 h-6 text-white"></i></div>
+            <div class="ml-3 text-white">
+              <p class="font-bold text-[15px]" id="cafe-title2">UAC 카페</p>
+              <p class="text-[11px] text-white/70">성수 커피, 무인위 원두 · 랭킹 1위</p>
+            </div>
+          </div>
+
+          <!-- tabs -->
+          <div class="bg-white flex text-[13.5px] px-2 pt-1">
+            <button class="tabbtn active flex-1 py-3 text-center" id="tab-esg" onclick="setCafeTab('esg')">ESG 리포트<span class="tabline"></span></button>
+            <button class="tabbtn flex-1 py-3 text-center" id="tab-coupon" onclick="setCafeTab('coupon')">쿠폰 혜택<span class="tabline"></span></button>
+          </div>
+        </div>
+
+        <!-- ESG panel -->
+        <div id="panel-esg" class="mx-5 mt-4 rounded-3xl bg-white p-6 shadow-card">
+          <div class="flex items-center gap-6">
+            <div class="gauge-ring w-28 h-28 shrink-0 flex items-center justify-center" style="--pct:70">
+              <div class="w-[86px] h-[86px] rounded-full bg-white flex flex-col items-center justify-center">
+                <p class="font-display text-2xl text-utgreen tabular">70<span class="text-xs">%</span></p>
+                <p class="text-[10px] text-utsub">목표 달성</p>
+              </div>
+            </div>
+            <div class="flex-1 space-y-2.5">
+              <div class="flex items-center justify-between text-[12.5px]"><span class="text-utsub">수거함 신장</span><span class="font-bold tabular">1,420kg</span></div>
+              <div class="flex items-center justify-between text-[12.5px]"><span class="text-utsub">건조원 소양</span><span class="font-bold tabular">2.30kg</span></div>
+              <div class="flex items-center justify-between text-[12.5px]"><span class="text-utsub">이번 달 건조 수거량</span><span class="font-bold tabular">320kg</span></div>
+            </div>
+          </div>
+          <div class="mt-5 rounded-2xl bg-utmint px-4 py-3 flex items-center gap-2.5">
+            <span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-utgreen3 opacity-60"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-utgreen2"></span></span>
+            <p class="text-[12px] text-utgreen font-semibold">열선 수거함 정상 건조 중 · 62℃ 유지</p>
+          </div>
+        </div>
+
+        <!-- Coupon panel -->
+        <div id="panel-coupon" class="hidden">
+          <div class="mx-5 mt-4 rounded-3xl bg-utgreen p-6 text-white text-center relative overflow-hidden shadow-card">
+            <div class="absolute inset-x-6 top-1/2 border-t border-dashed border-white/20"></div>
+            <p class="text-[11px] text-utamber font-bold tracking-wide">UAC 카페 전용</p>
+            <p class="font-display text-[26px] mt-2">전 메뉴 Size Up<br>무료 혜택</p>
+            <div class="mt-4 flex justify-center">
+              <i data-lucide="arrow-down-circle" class="w-8 h-8 text-white/70"></i>
+            </div>
+            <button id="coupon-btn" onclick="downloadCoupon()" class="pressable mt-5 w-full bg-utamber text-utgreen font-bold rounded-2xl py-3.5 flex items-center justify-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i> 친환경 커피박 연월 증정
+            </button>
+            <p class="text-[10.5px] text-white/45 mt-3">발급 후 7일 이내 매장에서 사용 가능</p>
+          </div>
+        </div>
+
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ ECO MAP ============ -->
+      <section id="screen-map" class="screen min-h-full bg-utcream pb-24">
+        <div class="px-5 pt-4 flex items-center justify-between">
+          <p class="font-display text-lg text-utgreen">에코 지도</p>
+          <i data-lucide="sliders-horizontal" class="w-5 h-5 text-utgreen"></i>
+        </div>
+        <div class="mx-5 mt-3 relative rounded-3xl overflow-hidden shadow-card heat-map h-[300px]">
+          <button onclick="openCafeFromMap('uac')" class="pin pin-1 pressable absolute" style="left:46%; top:38%;">
+            <span class="flex items-center gap-1 bg-utgreen text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-soft whitespace-nowrap"><i data-lucide="coffee" class="w-3 h-3"></i> UAC 카페</span>
+          </button>
+          <button onclick="openCafeFromMap('greenbean1')" class="pin pin-2 pressable absolute" style="left:22%; top:60%;">
+            <span class="w-7 h-7 bg-white rounded-full shadow-card flex items-center justify-center text-utgreen"><i data-lucide="coffee" class="w-3.5 h-3.5"></i></span>
+          </button>
+          <button onclick="openCafeFromMap('greenbean2')" class="pin pin-3 pressable absolute" style="left:70%; top:66%;">
+            <span class="w-7 h-7 bg-white rounded-full shadow-card flex items-center justify-center text-utgreen"><i data-lucide="coffee" class="w-3.5 h-3.5"></i></span>
+          </button>
+          <button class="pressable absolute right-3 bottom-3 w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center">
+            <i data-lucide="locate-fixed" class="w-4 h-4 text-utgreen"></i>
+          </button>
+        </div>
+
+        <div class="mx-5 mt-3 rounded-2xl bg-utamber2 px-4 py-3 flex items-start gap-2.5">
+          <i data-lucide="info" class="w-4 h-4 text-utamber shrink-0 mt-0.5"></i>
+          <p class="text-[11.5px] text-utgreen leading-relaxed">스마트 열선 수거함 핀은 건조 상태를 실시간으로 보여줘요. 초록 핀을 눌러 카페별 수거함 상태와 혜택을 확인하세요.</p>
+        </div>
+
+        <p class="px-5 mt-5 font-bold text-[14px]">근처 참여 카페</p>
+        <div class="mx-5 mt-2 rounded-3xl bg-white shadow-card divide-y divide-utcream" id="map-cafe-list"></div>
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ SHOP ============ -->
+      <section id="screen-shop" class="screen min-h-full bg-utcream pb-24">
+        <div class="px-5 pt-4">
+          <p class="font-display text-lg text-utgreen">새활용샵</p>
+          <p class="text-[12px] text-utsub mt-0.5">커피박으로 다시 태어난 생활 제품</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3 px-5 mt-4" id="shop-grid"></div>
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ ADMIN ============ -->
+      <section id="screen-admin" class="screen min-h-full bg-utcream pb-24">
+        <div class="px-5 pt-4 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] text-utsub font-semibold tracking-wide">B2B · 관리자 모드</p>
+            <p class="font-display text-lg text-utgreen -mt-0.5">UAC 카페 성수점</p>
+          </div>
+          <button onclick="goToScreen('home')" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center"><i data-lucide="user-round" class="w-4 h-4 text-utgreen"></i></button>
+        </div>
+
+        <!-- IoT monitoring -->
+        <div class="mx-5 mt-4 rounded-3xl bg-utgreen text-white p-5 shadow-card">
+          <div class="flex items-center justify-between">
+            <p class="text-[12.5px] font-bold flex items-center gap-1.5"><i data-lucide="thermometer" class="w-3.5 h-3.5 text-utamber"></i> 스마트 열선 수거함 모니터링</p>
+            <span class="text-[10px] bg-white/10 px-2 py-1 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>정상</span>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <p class="font-display text-3xl tabular">62<span class="text-sm">℃</span></p>
+              <p class="text-[11px] text-white/55 mt-1">내부 온도 · 최적</p>
+            </div>
+            <div>
+              <p class="font-display text-3xl tabular">18.4<span class="text-sm">kg</span></p>
+              <p class="text-[11px] text-white/55 mt-1">적재 무게 / 25kg</p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="h-2 w-full bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-utamber rounded-full" style="width:73%"></div></div>
+            <p class="text-[10.5px] text-white/45 mt-1.5">적재율 73% · 권장 수거 임계치 90%</p>
+          </div>
+          <button id="collect-btn" onclick="requestCollection()" class="pressable mt-4 w-full bg-utamber text-utgreen font-bold rounded-xl py-3 flex items-center justify-center gap-2 text-[13px]">
+            <i data-lucide="truck" class="w-4 h-4"></i> 수거 요청하기
+          </button>
+        </div>
+
+        <!-- marketing -->
+        <div class="mx-5 mt-4 rounded-3xl bg-white p-5 shadow-card">
+          <p class="text-[13px] font-bold">마케팅 성과</p>
+          <div class="mt-3 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl bg-utmint p-3.5">
+              <p class="font-display text-2xl text-utgreen tabular">47<span class="text-sm">명</span></p>
+              <p class="text-[11px] text-utsub mt-1">오늘 쿠폰 사용 고객</p>
+            </div>
+            <div class="rounded-2xl bg-utamber2 p-3.5">
+              <p class="font-display text-2xl text-utgreen tabular">+18<span class="text-sm">%</span></p>
+              <p class="text-[11px] text-utsub mt-1">이번 주 앱 유입 증가</p>
+            </div>
+          </div>
+          <div class="mt-4 flex items-end justify-between gap-2 h-20 bars px-1" id="marketing-bars"></div>
+          <div class="mt-1 flex justify-between px-1 text-[10px] text-utsub tabular">
+            <span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span>
+          </div>
+        </div>
+
+        <button onclick="downloadReport()" class="pressable mx-5 mt-4 w-[calc(100%-40px)] bg-utgreen text-white font-bold rounded-2xl py-3.5 flex items-center justify-center gap-2 text-[13.5px]">
+          <i data-lucide="file-down" class="w-4 h-4"></i> ESG 리포트 다운로드
+        </button>
+
+        <div class="h-4"></div>
+      </section>
+
+    </div><!-- /app-root -->
+
+    <!-- bottom nav -->
+    <nav id="bottom-nav" class="hidden absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-utcream px-2 pt-2 pb-6 z-30">
+      <div class="grid grid-cols-4 text-[10.5px] font-medium text-utsub">
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="home" onclick="goToScreen('home')">
+          <span class="navdot"></span><i data-lucide="home" class="navicon w-5 h-5"></i>홈
+        </button>
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="map" onclick="goToScreen('map')">
+          <span class="navdot"></span><i data-lucide="map-pin" class="navicon w-5 h-5"></i>에코지도
+        </button>
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="shop" onclick="goToScreen('shop')">
+          <span class="navdot"></span><i data-lucide="store" class="navicon w-5 h-5"></i>새활용샵
+        </button>
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="admin" onclick="goToScreen('admin')">
+          <span class="navdot"></span><i data-lucide="building-2" class="navicon w-5 h-5"></i>점주모드
+        </button>
+      </div>
+    </nav>
+
+    <!-- toast -->
+    <div id="toast" class="toast bg-utgreen text-white text-[12.5px] font-semibold px-4 py-2.5 rounded-full shadow-pop flex items-center gap-2 whitespace-nowrap">
+      <i data-lucide="check" class="w-3.5 h-3.5 text-utamber"></i><span id="toast-text">완료되었습니다</span>
+    </div>
+
+    <!-- stamp complete modal -->
+    <div id="modal-backdrop" class="modal-backdrop">
+      <div class="absolute inset-0 flex items-center justify-center px-8">
+        <div class="modal-card w-full bg-white rounded-3xl p-7 text-center shadow-pop">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-utamber2 flex items-center justify-center">
+            <i data-lucide="party-popper" class="w-8 h-8 text-utamber"></i>
+          </div>
+          <p class="font-display text-xl text-utgreen mt-4">출석 완주!</p>
+          <p class="text-[12.5px] text-utsub mt-1.5 leading-relaxed">3일 연속 출석으로<br><b class="text-utink">Size-Up 쿠폰</b>이 발급되었어요</p>
+          <button onclick="closeModal()" class="pressable mt-5 w-full bg-utgreen text-white font-bold rounded-2xl py-3 text-[13.5px]">쿠폰함에서 확인하기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="text-[11px] text-utink/35 tracking-wide">UTOPIA · 카페 열선형 커피박 수거함 자원순환 플랫폼 프로토타입</p>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const CAFES = [
+  { id:'uac',        name:'UAC 카페',        sub:'성수 커피, 무인위 원두', kg:184, pct:70 },
+  { id:'greenbean1',  name:'그린빈 치키하우스', sub:'성수동 자체 로스팅',    kg:142, pct:56 },
+  { id:'greenbean2',  name:'그린빈 치키하우스', sub:'성수 2가',            kg:142, pct:55 },
+  { id:'greenbean3',  name:'그린빈 치키하우스', sub:'성수 카페거리',        kg:142, pct:95 },
+];
+const PRODUCTS = [
+  { name:'커피박 바이오 피이아드', price:'12,000원', icon:'flame' },
+  { name:'친환경 탈취제 세트',    price:'8,500원',  icon:'wind' },
+  { name:'업사이클링 화분 키트',  price:'15,000원', icon:'sprout' },
+  { name:'친환경 연필 세트',      price:'6,000원',  icon:'pencil' },
+];
+
+/* ---------------- state ---------------- */
+const state = { role:null, screen:'login', prev:'home', cafeTab:'esg', stamps:0, couponIssued:false, collectRequested:false };
+let countdownSec = 114; // 01:54
+
+/* ---------------- render helpers ---------------- */
+function renderRanking(){
+  const medal = ['🥇','🥈','🥉','4'];
+  document.getElementById('ranking-list').innerHTML = CAFES.map((c,i)=>`
+    <button onclick="openCafeDetail('${c.id}','esg')" class="pressable w-full flex items-center gap-3 px-4 py-3.5 text-left">
+      <span class="w-7 h-7 shrink-0 flex items-center justify-center rounded-full ${i===0?'bg-utamber2 text-utamber font-bold':'bg-utcream text-utsub font-bold'} text-[12px]">${i===0?'1':i+1}</span>
+      <span class="w-10 h-10 rounded-xl bg-utgreen/90 flex items-center justify-center shrink-0"><i data-lucide="coffee" class="w-4 h-4 text-white"></i></span>
+      <span class="flex-1 min-w-0">
+        <span class="block text-[13.5px] font-bold truncate">${c.name}</span>
+        <span class="block text-[11px] text-utsub truncate">${c.kg}kg · ${c.pct}% reduced</span>
+      </span>
+      <i data-lucide="chevron-right" class="w-4 h-4 text-utsub shrink-0"></i>
+    </button>`).join('');
+  document.getElementById('map-cafe-list').innerHTML = CAFES.map(c=>`
+    <button onclick="openCafeDetail('${c.id}','esg')" class="pressable w-full flex items-center gap-3 px-4 py-3.5 text-left">
+      <span class="w-10 h-10 rounded-xl bg-utmint flex items-center justify-center shrink-0"><i data-lucide="coffee" class="w-4 h-4 text-utgreen2"></i></span>
+      <span class="flex-1 min-w-0">
+        <span class="block text-[13.5px] font-bold truncate">${c.name}</span>
+        <span class="block text-[11px] text-utsub truncate">${c.sub} · 건조 정상</span>
+      </span>
+      <span class="text-[10px] font-bold text-utgreen2 bg-utmint px-2 py-1 rounded-full shrink-0">건조중</span>
+    </button>`).join('');
+  lucide.createIcons();
+}
+function renderShop(){
+  document.getElementById('shop-grid').innerHTML = PRODUCTS.map(p=>`
+    <button onclick="addToCart('${p.name}')" class="pressable bg-white rounded-3xl p-3.5 text-left shadow-card">
+      <div class="h-24 rounded-2xl bg-utmint flex items-center justify-center mb-3">
+        <i data-lucide="${p.icon}" class="w-8 h-8 text-utgreen2"></i>
+      </div>
+      <p class="text-[12.5px] font-bold leading-snug">${p.name}</p>
+      <p class="text-[12px] text-utamber font-bold mt-1 tabular">${p.price}</p>
+    </button>`).join('');
+  lucide.createIcons();
+}
+function renderStamps(){
+  document.getElementById('stamp-slots').innerHTML = [0,1,2].map(i=>`
+    <div class="stamp-slot h-11 rounded-xl border-2 border-dashed border-utcream bg-utcream/60 flex items-center justify-center ${i<state.stamps?'filled':''}">
+      <i data-lucide="check" class="w-4 h-4" style="stroke:${i<state.stamps?'#F4EFE3':'#C9C2AC'}"></i>
+    </div>`).join('');
+  document.getElementById('stamp-count').textContent = state.stamps;
+  lucide.createIcons();
+}
+function renderBars(){
+  const vals=[38,54,46,70,62];
+  document.getElementById('marketing-bars').innerHTML = vals.map(v=>`<div class="flex-1 bg-utgreen2/80 rounded-t-md" style="height:${v}%"></div>`).join('');
+}
+
+/* ---------------- navigation ---------------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('app-root').scrollTop = 0;
+  state.screen = id;
+  document.querySelectorAll('.navtab').forEach(b=>{
+    b.classList.toggle('active', b.dataset.target===id);
+  });
+  lucide.createIcons();
+}
+function goToScreen(id){
+  state.prev = state.screen;
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  showScreen(id);
+}
+function goBack(){ showScreen(state.prev); }
+
+function selectRole(role){
+  state.role = role;
+  renderRanking(); renderShop(); renderStamps(); renderBars();
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  if(role==='user'){ goToScreen('home'); } else { goToScreen('admin'); }
+}
+
+function openCafeDetail(id, tab){
+  const c = CAFES.find(x=>x.id===id) || CAFES[0];
+  document.getElementById('cafe-title').textContent = c.name;
+  document.getElementById('cafe-title2').textContent = c.name;
+  state.prev = state.screen;
+  showScreen('cafedetail');
+  setCafeTab(tab||'esg');
+}
+function openCafeFromMap(id){ openCafeDetail(id,'esg'); }
+
+function setCafeTab(tab){
+  state.cafeTab = tab;
+  document.getElementById('tab-esg').classList.toggle('active', tab==='esg');
+  document.getElementById('tab-coupon').classList.toggle('active', tab==='coupon');
+  document.getElementById('panel-esg').classList.toggle('hidden', tab!=='esg');
+  document.getElementById('panel-coupon').classList.toggle('hidden', tab!=='coupon');
+}
+
+function bannerClick(){
+  openCafeDetail('uac','coupon');
+}
+
+/* ---------------- interactions ---------------- */
+function downloadCoupon(){
+  if(state.couponIssued) return;
+  state.couponIssued = true;
+  const btn = document.getElementById('coupon-btn');
+  btn.innerHTML = '<i data-lucide="badge-check" class="w-4 h-4"></i> 발급 완료';
+  btn.classList.add('opacity-70');
+  btn.disabled = true;
+  lucide.createIcons();
+  showToast('Size-Up 쿠폰이 발급되었어요');
+}
+
+function tapStamp(){
+  if(state.stamps>=3) return;
+  state.stamps++;
+  renderStamps();
+  if(state.stamps===3){
+    setTimeout(openModal, 250);
+  } else {
+    showToast(`${state.stamps}일차 출석 완료`);
+  }
+}
+function openModal(){ document.getElementById('modal-backdrop').classList.add('show'); }
+function closeModal(){ document.getElementById('modal-backdrop').classList.remove('show'); }
+
+function addToCart(name){ showToast(`${name} 장바구니에 담았어요`); }
+
+function requestCollection(){
+  const btn = document.getElementById('collect-btn');
+  if(state.collectRequested) return;
+  state.collectRequested = true;
+  btn.innerHTML = '<i data-lucide="clock" class="w-4 h-4"></i> 수거 요청 완료 · 대기중';
+  btn.classList.add('opacity-70');
+  lucide.createIcons();
+  showToast('수거팀에 요청을 전달했어요');
+}
+
+function downloadReport(){ showToast('ESG 리포트를 다운로드했어요'); }
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  clearTimeout(toastTimer);
+  document.getElementById('toast-text').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+/* ---------------- countdown ---------------- */
+function tickCountdown(){
+  const el = document.getElementById('countdown-text');
+  if(countdownSec<=0){ el.textContent = '오픈!'; return; }
+  countdownSec--;
+  const m = String(Math.floor(countdownSec/60)).padStart(2,'0');
+  const s = String(countdownSec%60).padStart(2,'0');
+  el.textContent = `${m}:${s}`;
+}
+setInterval(tickCountdown, 1000);
+
+/* ---------------- live-ish dashboard ---------------- */
+let collectedKg = 1420, co2Kg = 420;
+setInterval(()=>{
+  collectedKg += Math.floor(Math.random()*3);
+  co2Kg += Math.floor(Math.random()*2);
+  const c = document.getElementById('stat-collected');
+  const o = document.getElementById('stat-co2');
+  if(c) c.innerHTML = collectedKg.toLocaleString()+'<span class="text-sm">kg</span>';
+  if(o) o.innerHTML = co2Kg.toLocaleString()+'<span class="text-sm">kg</span>';
+}, 4000);
+
+/* ---------------- clock ---------------- */
+function updateClock(){
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+updateClock(); setInterval(updateClock, 15000);
+
+/* ---------------- init ---------------- */
+lucide.createIcons();
+</script>
+</body>
+</html>
