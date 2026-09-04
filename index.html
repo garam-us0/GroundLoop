@@ -44,7 +44,7 @@
     --ring: rgba(18,54,42,0.10);
   }
   *{ -webkit-tap-highlight-color: transparent; }
-  html,body{ background: var(--bg-studio); }
+  html,body{ background: var(--bg-studio); height:100%; overflow:hidden; }
   body{ font-family:'Noto Sans KR', system-ui, sans-serif; color:#182821; }
   .font-display{ font-family:'Fraunces','Noto Sans KR',serif; }
   .no-scrollbar::-webkit-scrollbar{ display:none; }
@@ -61,6 +61,8 @@
     box-shadow: 0 40px 90px -28px rgba(15,36,27,0.55), 0 2px 0 rgba(255,255,255,0.6) inset;
     border: 10px solid var(--frame);
     position:relative; overflow:hidden;
+    transform-origin: center center;
+    flex-shrink: 0;
   }
   .notch{
     position:absolute; top:10px; left:50%; transform:translateX(-50%);
@@ -87,6 +89,7 @@
   .tabbtn{ position:relative; }
   .tabbtn .tabline{ position:absolute; left:14px; right:14px; bottom:-1px; height:2px; background:#12362A; transform:scaleX(0); transition:transform .25s ease; transform-origin:left; }
   .tabbtn.active{ color:#12362A; font-weight:700; }
+  .tabbtn.active .tabline{ transform:scaleX(1); }
   .tabbtn:not(.active){ color:#9AA79E; }
 
   .pin{ animation: bob 2.6s ease-in-out infinite; }
@@ -126,7 +129,7 @@
 </head>
 <body>
 
-<div class="min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 gap-4">
+<div class="h-screen w-full flex flex-col items-center justify-center px-4 gap-3 overflow-hidden">
 
   <div class="phone" id="phone">
     <div class="notch"></div>
@@ -198,7 +201,8 @@
           <span class="font-display text-lg text-utgreen">UTOPIA</span>
           <div class="flex items-center gap-3">
             <button class="pressable relative"><i data-lucide="bell" class="w-5 h-5 text-utgreen"></i><span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-utamber"></span></button>
-            <button class="pressable" onclick="goToScreen('admin')"><i data-lucide="user-round" class="w-5 h-5 text-utgreen"></i></button>
+            <button class="pressable" onclick="goToScreen('admin')" title="점주 모드로 전환"><i data-lucide="user-round" class="w-5 h-5 text-utgreen"></i></button>
+            <button class="pressable" onclick="exitToLogin()" title="로그아웃 · 역할 다시 선택"><i data-lucide="log-out" class="w-5 h-5 text-utsub"></i></button>
           </div>
         </div>
 
@@ -353,7 +357,10 @@
             <p class="text-[11px] text-utsub font-semibold tracking-wide">B2B · 관리자 모드</p>
             <p class="font-display text-lg text-utgreen -mt-0.5">UAC 카페 성수점</p>
           </div>
-          <button onclick="goToScreen('home')" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center"><i data-lucide="user-round" class="w-4 h-4 text-utgreen"></i></button>
+          <div class="flex items-center gap-2">
+            <button onclick="goToScreen('home')" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center" title="일반 사용자 모드로 전환"><i data-lucide="user-round" class="w-4 h-4 text-utgreen"></i></button>
+            <button onclick="exitToLogin()" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center" title="로그아웃 · 역할 다시 선택"><i data-lucide="log-out" class="w-4 h-4 text-utsub"></i></button>
+          </div>
         </div>
 
         <!-- IoT monitoring -->
@@ -448,7 +455,7 @@
 
   </div>
 
-  <p class="text-[11px] text-utink/35 tracking-wide">UTOPIA · 카페 열선형 커피박 수거함 자원순환 플랫폼 프로토타입</p>
+  <p class="text-[11px] text-utink/35 tracking-wide shrink-0">UTOPIA · 카페 열선형 커피박 수거함 자원순환 플랫폼 프로토타입</p>
 </div>
 
 <script>
@@ -535,6 +542,12 @@ function goToScreen(id){
   showScreen(id);
 }
 function goBack(){ showScreen(state.prev); }
+
+function exitToLogin(){
+  state.role = null;
+  document.getElementById('bottom-nav').classList.add('hidden');
+  showScreen('login');
+}
 
 function selectRole(role){
   state.role = role;
@@ -643,6 +656,20 @@ function updateClock(){
     String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
 updateClock(); setInterval(updateClock, 15000);
+
+/* ---------------- fit phone to viewport (no scrolling needed) ---------------- */
+function fitPhone(){
+  const phoneEl = document.getElementById('phone');
+  const reserveV = 64;  // caption + gaps + breathing room
+  const reserveH = 32;
+  const availH = window.innerHeight - reserveV;
+  const availW = window.innerWidth - reserveH;
+  const scale = Math.min(availH/860, availW/412, 1);
+  phoneEl.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', fitPhone);
+window.addEventListener('orientationchange', fitPhone);
+fitPhone();
 
 /* ---------------- init ---------------- */
 lucide.createIcons();
