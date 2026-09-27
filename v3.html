@@ -193,7 +193,7 @@
         <div class="px-5 pt-4 flex items-center justify-between">
           <div>
             <p class="text-[11px] text-glsub font-semibold tracking-wide" id="app-role-label">B2B · 카페 배출처 모드</p>
-            <p class="font-display text-lg text-glgreen -mt-0.5" id="app-title-label">UAC 카페 IGC점</p>
+            <p class="font-display text-lg text-glgreen -mt-0.5" id="app-title-label">UAC 카페 성수점</p>
           </div>
           <button onclick="exitToLogin()" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center" title="인트로로 돌아가기"><i data-lucide="log-out" class="w-4 h-4 text-glsub"></i></button>
         </div>
@@ -482,13 +482,13 @@
           <div id="gov-panel-report" class="hidden">
             <div class="mx-5 mt-4 rounded-3xl bg-white shadow-card p-5">
               <label class="text-[11px] font-semibold text-glsub">보고서 유형</label>
-              <select id="report-type" class="w-full mt-1.5 rounded-xl border border-glcream bg-white text-glink px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
+              <select id="report-type" class="w-full mt-1.5 rounded-xl border border-glcream px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
                 <option value="esg">표준 ESG 보고서</option>
                 <option value="circulation">자원순환 실적 보고서</option>
               </select>
 
               <label class="text-[11px] font-semibold text-glsub mt-4 block">기간</label>
-              <select id="report-period" class="w-full mt-1.5 rounded-xl border border-glcream bg-white text-glink px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
+              <select id="report-period" class="w-full mt-1.5 rounded-xl border border-glcream px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
                 <option value="quarter">이번 분기</option>
                 <option value="year">올해 누적</option>
               </select>
@@ -502,7 +502,7 @@
 
               <div class="grid grid-cols-2 gap-2.5 mt-5">
                 <button onclick="generateGovReport('excel')" class="pressable bg-glbrown2 text-glbrown font-bold rounded-xl py-3 text-[12.5px] flex items-center justify-center gap-1.5"><i data-lucide="table" class="w-4 h-4"></i>Excel</button>
-                <button onclick="generateGovReport('pdf')" class="pressable bg-glbrown text-white font-bold rounded-xl py-3 text-[12.5px] flex items-center justify-center gap-1.5"><i data-lucide="file-down" class="w-4 h-4"></i>PDF</button>
+                <button onclick="generateGovReport('pdf')" class="pressable bg-glgreen text-white font-bold rounded-xl py-3 text-[12.5px] flex items-center justify-center gap-1.5"><i data-lucide="file-down" class="w-4 h-4"></i>PDF</button>
               </div>
             </div>
           </div>
@@ -570,22 +570,22 @@
 
           <label class="text-[11px] font-semibold text-glsub">수량</label>
           <div class="flex gap-2 mt-1.5">
-            <input id="order-qty" type="number" value="1" min="0.1" step="0.1" class="flex-1 rounded-xl border border-glcream bg-white text-glink px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
-            <select id="order-unit" class="rounded-xl border border-glcream bg-white text-glink px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
+            <input id="order-qty" type="number" value="1" min="0.1" step="0.1" class="flex-1 rounded-xl border border-glcream px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
+            <select id="order-unit" class="rounded-xl border border-glcream px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
               <option value="t">t</option>
               <option value="kg">kg</option>
             </select>
           </div>
 
           <label class="text-[11px] font-semibold text-glsub mt-4 block">공급 방식</label>
-          <select id="order-mode" onchange="onOrderModeChange()" class="w-full mt-1.5 rounded-xl border border-glcream bg-white text-glink px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
+          <select id="order-mode" onchange="onOrderModeChange()" class="w-full mt-1.5 rounded-xl border border-glcream px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
             <option value="once">단발성 발주</option>
             <option value="regular">정기 공급 계약</option>
           </select>
 
           <div id="order-freq-wrap" class="hidden">
             <label class="text-[11px] font-semibold text-glsub mt-4 block">배송 주기</label>
-            <select id="order-freq" class="w-full mt-1.5 rounded-xl border border-glcream bg-white text-glink px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
+            <select id="order-freq" class="w-full mt-1.5 rounded-xl border border-glcream px-3 py-2.5 text-[13px] outline-none focus:border-glgreen2">
               <option value="주1회">주 1회</option>
               <option value="2주1회">2주 1회</option>
               <option value="월1회">월 1회</option>
@@ -604,7 +604,7 @@
     <div id="lot-modal-backdrop" class="modal-backdrop">
       <div class="absolute inset-0 flex items-center justify-center px-6">
         <div class="modal-card w-full bg-white rounded-3xl p-6 shadow-pop">
-          <p class="text-[11px] text-glsub font-semibold" id="lot-modal-cluster">IGC 클러스터</p>
+          <p class="text-[11px] text-glsub font-semibold" id="lot-modal-cluster">성수 클러스터</p>
           <p class="font-display text-lg text-glgreen mt-0.5" id="lot-modal-title">LOT-2026-0912</p>
           <div class="mt-4 rounded-2xl bg-glcream p-4 space-y-2">
             <div class="flex justify-between text-[12.5px]"><span class="text-glsub">검수일</span><span class="font-bold tabular" id="lot-modal-date">-</span></div>
@@ -626,22 +626,22 @@
 <script>
 /* ---------------- data ---------------- */
 const CAFE_SITES = [
-  { id:'uac',        name:'UAC 카페 IGC점',   cluster:'IGC 클러스터', pct:70, fan:'정상가동', left:'46%', top:'32%' },
-  { id:'greenbean1', name:'그린빈 IGC1호점',  cluster:'IGC 클러스터', pct:56, fan:'정상가동', left:'22%', top:'56%' },
-  { id:'greenbean2', name:'그린빈 IGC2호점',  cluster:'IGC 클러스터', pct:55, fan:'정상가동', left:'70%', top:'60%' },
-  { id:'greenbean3', name:'그린빈 카페거리점', cluster:'IGC 클러스터', pct:95, fan:'점검필요', left:'34%', top:'80%' },
+  { id:'uac',        name:'UAC 카페 성수점',   cluster:'성수 클러스터', pct:70, fan:'정상가동', left:'46%', top:'32%' },
+  { id:'greenbean1', name:'그린빈 성수1호점',  cluster:'성수 클러스터', pct:56, fan:'정상가동', left:'22%', top:'56%' },
+  { id:'greenbean2', name:'그린빈 성수2호점',  cluster:'성수 클러스터', pct:55, fan:'정상가동', left:'70%', top:'60%' },
+  { id:'greenbean3', name:'그린빈 카페거리점', cluster:'성수 클러스터', pct:95, fan:'점검필요', left:'34%', top:'80%' },
 ];
 
 const CLUSTERS = [
-  { name:'IGC 클러스터', bins:18, supply:'82%', rate:'91%' },
-  { name:'연세대 클러스터', bins:11, supply:'54%', rate:'76%' },
-  { name:'인하대 클러스터', bins:9,  supply:'47%', rate:'68%' },
+  { name:'성수 클러스터', bins:18, supply:'82%', rate:'91%' },
+  { name:'마포 클러스터', bins:11, supply:'54%', rate:'76%' },
+  { name:'강남 클러스터', bins:9,  supply:'47%', rate:'68%' },
 ];
 
 const LOTS = [
-  { lot:'LOT-2026-0912', cluster:'IGC 클러스터', date:'2026-09-12', moisture:'8.2%',  dry:'96%', foreign:'양호', contam:'낮음' },
-  { lot:'LOT-2026-0905', cluster:'IGC 클러스터', date:'2026-09-05', moisture:'9.1%',  dry:'94%', foreign:'양호', contam:'낮음' },
-  { lot:'LOT-2026-0828', cluster:'연세대 클러스터',  date:'2026-08-28', moisture:'11.4%', dry:'89%', foreign:'보통', contam:'보통' },
+  { lot:'LOT-2026-0912', cluster:'성수 클러스터', date:'2026-09-12', moisture:'8.2%',  dry:'96%', foreign:'양호', contam:'낮음' },
+  { lot:'LOT-2026-0905', cluster:'성수 클러스터', date:'2026-09-05', moisture:'9.1%',  dry:'94%', foreign:'양호', contam:'낮음' },
+  { lot:'LOT-2026-0828', cluster:'마포 클러스터',  date:'2026-08-28', moisture:'11.4%', dry:'89%', foreign:'보통', contam:'보통' },
 ];
 
 let ordersData = [
@@ -684,7 +684,7 @@ function setMainTab(tab){
   document.getElementById('maintab-company').classList.toggle('hidden', tab!=='company');
   document.getElementById('maintab-gov').classList.toggle('hidden', tab!=='gov');
   const labels = {
-    cafe:    { role:'B2B · 카페 배출처 모드',   title:'UAC 카페 IGC점' },
+    cafe:    { role:'B2B · 카페 배출처 모드',   title:'UAC 카페 성수점' },
     company: { role:'B2B · 재가공기업 모드',    title:'그린사이클 주식회사' },
     gov:     { role:'B2B · 지자체 모드',        title:'성동구 환경정책과' }
   };
