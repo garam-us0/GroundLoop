@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>GROUNDLOOP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          glgreen:  '#16170F',
+          glgreen2: '#83996C',
+          glgreen3: '#A9BC97',
+          glmint:   '#EEF0E6',
+          glbrown:  '#5C6E4C',
+          glbrown2: '#DCE3CC',
+          glcream:  '#F5F6F1',
+          glink:    '#14150F',
+          glsub:    '#70766A'
+        },
+        fontFamily: {
+          display: ['Fraunces', 'Noto Sans KR', 'serif'],
+          sans: ['Noto Sans KR', 'system-ui', 'sans-serif']
+        },
+        boxShadow: {
+          soft: '0 10px 30px -12px rgba(18,54,42,0.28)',
+          card: '0 2px 10px -2px rgba(18,54,42,0.10)',
+          pop:  '0 24px 60px -18px rgba(18,54,42,0.45)'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root{
+    --bg-studio:#E7E9E1;
+    --frame:#0F241B;
+  }
+  *{ -webkit-tap-highlight-color: transparent; }
+  html,body{ background: var(--bg-studio); height:100%; overflow:hidden; }
+  body{ font-family:'Noto Sans KR', system-ui, sans-serif; color:#14150F; }
+  .font-display{ font-family:'Fraunces','Noto Sans KR',serif; }
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+  .tabular{ font-variant-numeric: tabular-nums; }
+
+  .screen{ display:none !important; }
+  .screen.active{ display:block !important; animation: rise .38s cubic-bezier(.22,.61,.36,1); }
+  #screen-login.active{ display:flex !important; }
+  @keyframes rise{ from{ opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  .phone{
+    width:100%; max-width:412px; height:860px;
+    background:#fff; border-radius:44px;
+    box-shadow: 0 40px 90px -28px rgba(15,36,27,0.55), 0 2px 0 rgba(255,255,255,0.6) inset;
+    border: 10px solid var(--frame);
+    position:relative; overflow:hidden;
+    transform-origin: center center;
+    flex-shrink: 0;
+  }
+  .notch{
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:120px; height:26px; background:var(--frame); border-radius:16px; z-index:40;
+  }
+  .statusbar{ height:46px; }
+
+  .navtab{ position:relative; transition: color .2s ease; }
+  .navtab .navdot{ width:5px; height:5px; border-radius:999px; background:#83996C; position:absolute; top:-3px; left:50%; transform:translateX(-50%); opacity:0; transition:opacity .2s ease; }
+  .navtab.active{ color:#16170F; }
+  .navtab.active .navdot{ opacity:1; }
+  .navtab .navicon{ transition: transform .2s ease; }
+  .navtab.active .navicon{ transform: translateY(-1px); }
+
+  .gauge-ring{
+    background: conic-gradient(#83996C calc(var(--pct)*1%), #DCE3CC 0);
+    border-radius:999px;
+  }
+
+  .stamp-slot{ transition: all .25s cubic-bezier(.22,.61,.36,1); }
+  .stamp-slot.filled{ background:#16170F; border-color:#16170F; }
+  .stamp-slot.filled svg{ stroke:#F5F6F1; }
+
+  .tabbtn{ position:relative; }
+  .tabbtn .tabline{ position:absolute; left:14px; right:14px; bottom:-1px; height:2px; background:#83996C; transform:scaleX(0); transition:transform .25s ease; transform-origin:left; }
+  .tabbtn.active{ color:#16170F; font-weight:700; }
+  .tabbtn.active .tabline{ transform:scaleX(1); }
+  .tabbtn:not(.active){ color:#9AA79E; }
+
+  .pin{ animation: bob 2.6s ease-in-out infinite; }
+  .pin.pin-2{ animation-delay:.5s; } .pin.pin-3{ animation-delay:1s; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+
+  .toast{
+    position:absolute; left:50%; bottom:104px; transform:translateX(-50%) translateY(10px);
+    opacity:0; pointer-events:none; transition: all .28s cubic-bezier(.22,.61,.36,1); z-index:70;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .modal-backdrop{ position:absolute; inset:0; background:rgba(15,30,23,0.55); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:80; }
+  .modal-backdrop.show{ opacity:1; pointer-events:auto; }
+  .modal-card{ transform:translateY(24px) scale(.96); opacity:0; transition: all .32s cubic-bezier(.22,.61,.36,1); }
+  .modal-backdrop.show .modal-card{ transform:translateY(0) scale(1); opacity:1; }
+
+  .pressable{ transition: transform .12s ease, box-shadow .12s ease; }
+  .pressable:active{ transform: scale(0.97); }
+
+  .heat-map{
+    background:
+      radial-gradient(120px 90px at 24% 30%, rgba(131,153,108,0.35), transparent 60%),
+      radial-gradient(140px 100px at 78% 22%, rgba(131,153,108,0.28), transparent 60%),
+      radial-gradient(160px 130px at 55% 70%, rgba(131,153,108,0.30), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(20,21,15,0.05) 0px, rgba(20,21,15,0.05) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(90deg, rgba(20,21,15,0.05) 0px, rgba(20,21,15,0.05) 1px, transparent 1px, transparent 34px),
+      #EEF0E6;
+  }
+
+  .bars > div{ transition: height .6s cubic-bezier(.22,.61,.36,1); }
+
+  .bin-fill{
+    position:absolute; left:0; right:0; bottom:0; transition: height .7s cubic-bezier(.22,.61,.36,1), background-color .4s ease;
+  }
+  .barcode-bar{ background:#14150F; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="h-screen w-full flex flex-col items-center justify-center px-4 gap-3 overflow-hidden">
+
+  <div class="phone" id="phone">
+    <div class="notch"></div>
+
+    <!-- status bar -->
+    <div class="statusbar w-full flex items-center justify-between px-8 pt-3 text-[12px] font-semibold text-glink tabular relative z-30">
+      <span id="clock">10:10</span>
+      <div class="flex items-center gap-1">
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <i data-lucide="battery-full" class="w-4 h-4"></i>
+      </div>
+    </div>
+
+    <!-- app root -->
+    <div id="app-root" class="absolute inset-0 top-[46px] bottom-0 overflow-y-auto no-scrollbar">
+
+      <!-- ============ LOGIN (center-aligned) ============ -->
+      <section id="screen-login" class="screen active min-h-full bg-gradient-to-b from-glgreen via-glgreen to-[#0B1F19] text-white flex flex-col items-center px-9">
+        <div class="my-auto w-full flex flex-col items-center">
+          <div class="w-full flex flex-col items-center">
+            <div class="flex items-center justify-center select-none">
+              <span class="font-display font-bold text-[32px] tracking-tight text-white whitespace-nowrap">GroundL<span class="text-glgreen3">&#8734;</span>p</span>
+            </div>
+            <p class="text-white/60 text-[13px] mt-4 tracking-wide text-center max-w-[260px] leading-relaxed">버려지는 커피박을 새로운 가치로 연결하는<br>자원순환 플랫폼</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 text-center w-full mt-9">
+          <div>
+            <p class="font-display text-xl text-glgreen3 tabular">1,420<span class="text-xs align-top">kg</span></p>
+            <p class="text-[11px] text-white/50 mt-1">누적 건조 수거</p>
+          </div>
+          <div class="border-x border-white/10">
+            <p class="font-display text-xl text-glgreen3 tabular">420<span class="text-xs align-top">kg</span></p>
+            <p class="text-[11px] text-white/50 mt-1">CO₂eq 절감</p>
+          </div>
+          <div>
+            <p class="font-display text-xl text-glgreen3 tabular">86</p>
+            <p class="text-[11px] text-white/50 mt-1">참여 카페</p>
+          </div>
+        </div>
+
+        <div class="w-full mt-9 space-y-3">
+          <p class="text-center text-white/45 text-[12px] mb-1">어떤 계정으로 시작할까요?</p>
+          <button onclick="selectRole('user')" class="pressable w-full bg-glbrown text-white font-bold rounded-2xl py-4 flex items-center justify-center gap-2 shadow-soft">
+            <i data-lucide="user-round" class="w-4 h-4"></i> 일반 사용자용
+          </button>
+          <button onclick="selectRole('admin')" class="pressable w-full bg-white/10 text-white font-bold rounded-2xl py-4 flex items-center justify-center gap-2 border border-white/15">
+            <i data-lucide="coffee" class="w-4 h-4"></i> 카페 점주용
+          </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ USER HOME ============ -->
+      <section id="screen-home" class="screen min-h-full bg-glcream pb-24">
+        <!-- countdown banner -->
+        <button onclick="bannerClick()" class="pressable w-full bg-glbrown text-white px-5 py-3 flex items-center justify-between mt-2">
+          <div class="flex items-center gap-2 text-left">
+            <i data-lucide="timer" class="w-4 h-4 shrink-0"></i>
+            <span class="text-[12.5px] font-bold leading-tight">화요일 12:00 오픈! <span id="countdown-text" class="tabular">01:54</span> 후 쿠폰 오픈</span>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 shrink-0"></i>
+        </button>
+
+        <!-- header -->
+        <div class="flex items-center justify-between px-5 pt-5">
+          <span class="font-display font-bold text-lg text-glgreen tracking-tight leading-none select-none whitespace-nowrap">GroundL<span class="text-glgreen2">&#8734;</span>p</span>
+          <div class="flex items-center gap-3">
+            <button class="pressable relative"><i data-lucide="bell" class="w-5 h-5 text-glgreen"></i><span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-glbrown"></span></button>
+            <button class="pressable" onclick="goToScreen('admin')" title="점주 모드로 전환"><i data-lucide="user-round" class="w-5 h-5 text-glgreen"></i></button>
+            <button class="pressable" onclick="exitToLogin()" title="로그아웃 · 역할 다시 선택"><i data-lucide="log-out" class="w-5 h-5 text-glsub"></i></button>
+          </div>
+        </div>
+
+        <!-- dashboard card -->
+        <div class="mx-5 mt-5 rounded-3xl bg-glgreen text-white p-5 shadow-card relative overflow-hidden">
+          <div class="absolute -right-6 -top-8 w-28 h-28 rounded-full bg-white/5"></div>
+          <p class="text-[12px] text-white/60">우리 동네 자원순환 현황 · 실시간</p>
+          <div class="mt-3 grid grid-cols-2 gap-4">
+            <div>
+              <p class="font-display text-[26px] tabular leading-none" id="stat-collected">1,420<span class="text-sm">kg</span></p>
+              <p class="text-[11px] text-white/55 mt-1.5">건조 커피박 수거량</p>
+            </div>
+            <div class="pl-4 border-l border-white/10">
+              <p class="font-display text-[26px] tabular leading-none text-glbrown2" id="stat-co2">420<span class="text-sm">kg</span></p>
+              <p class="text-[11px] text-white/55 mt-1.5">CO₂eq 절감량</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- stamp widget -->
+        <div class="mx-5 mt-4 rounded-3xl bg-white p-5 shadow-card">
+          <div class="flex items-center justify-between">
+            <p class="font-bold text-[14px]">3일 출석 스탬프</p>
+            <p class="text-[11px] text-glsub"><span id="stamp-count">0</span>/3 · Size-Up 쿠폰</p>
+          </div>
+          <div class="mt-3 flex items-center gap-3">
+            <div class="flex-1 grid grid-cols-3 gap-2" id="stamp-slots"></div>
+            <button onclick="tapStamp()" class="pressable shrink-0 w-11 h-11 rounded-full bg-glbrown2 flex items-center justify-center">
+              <i data-lucide="stamp" class="w-5 h-5 text-glbrown"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ranking -->
+        <div class="mx-5 mt-5 flex items-center justify-between">
+          <p class="font-bold text-[15px]">우리 동네 ESG 카페 랭킹</p>
+          <button onclick="goToScreen('map')" class="text-[11px] text-glsub flex items-center gap-0.5 pressable">지도에서 보기 <i data-lucide="chevron-right" class="w-3 h-3"></i></button>
+        </div>
+        <div class="mx-5 mt-2 rounded-3xl bg-white shadow-card divide-y divide-glcream" id="ranking-list"></div>
+
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ CAFE DETAIL ============ -->
+      <section id="screen-cafedetail" class="screen min-h-full bg-glcream pb-24">
+        <div class="flex items-center gap-3 px-4 pt-4">
+          <button onclick="goBack()" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center"><i data-lucide="arrow-left" class="w-4 h-4 text-glgreen"></i></button>
+          <p class="font-bold text-[15px]" id="cafe-title">UAC 카페</p>
+        </div>
+
+        <div class="mx-5 mt-4 rounded-3xl overflow-hidden shadow-card">
+          <div class="h-24 bg-gradient-to-r from-glgreen to-glgreen3 flex items-center px-5">
+            <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center"><i data-lucide="coffee" class="w-6 h-6 text-white"></i></div>
+            <div class="ml-3 text-white">
+              <p class="font-bold text-[15px]" id="cafe-title2">UAC 카페</p>
+              <p class="text-[11px] text-white/70">성수 커피, 무인위 원두 · 랭킹 1위</p>
+            </div>
+          </div>
+
+          <!-- tabs -->
+          <div class="bg-white flex text-[13.5px] px-2 pt-1">
+            <button class="tabbtn active flex-1 py-3 text-center" id="tab-esg" onclick="setCafeTab('esg')">ESG 리포트<span class="tabline"></span></button>
+            <button class="tabbtn flex-1 py-3 text-center" id="tab-coupon" onclick="setCafeTab('coupon')">쿠폰 혜택<span class="tabline"></span></button>
+          </div>
+        </div>
+
+        <!-- ESG panel -->
+        <div id="panel-esg" class="mx-5 mt-4 rounded-3xl bg-white p-6 shadow-card">
+          <div class="flex items-center gap-6">
+            <div class="gauge-ring w-28 h-28 shrink-0 flex items-center justify-center" style="--pct:70">
+              <div class="w-[86px] h-[86px] rounded-full bg-white flex flex-col items-center justify-center">
+                <p class="font-display text-2xl text-glgreen tabular">70<span class="text-xs">%</span></p>
+                <p class="text-[10px] text-glsub">목표 달성</p>
+              </div>
+            </div>
+            <div class="flex-1 space-y-2.5">
+              <div class="flex items-center justify-between text-[12.5px]"><span class="text-glsub">수거함 신장</span><span class="font-bold tabular">1,420kg</span></div>
+              <div class="flex items-center justify-between text-[12.5px]"><span class="text-glsub">건조원 소양</span><span class="font-bold tabular">2.30kg</span></div>
+              <div class="flex items-center justify-between text-[12.5px]"><span class="text-glsub">이번 달 건조 수거량</span><span class="font-bold tabular">320kg</span></div>
+            </div>
+          </div>
+          <div class="mt-5 rounded-2xl bg-glmint px-4 py-3 flex items-center gap-2.5">
+            <span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-glgreen3 opacity-60"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-glgreen2"></span></span>
+            <p class="text-[12px] text-glgreen font-semibold">열선 수거함 정상 건조 중 · 62℃ 유지</p>
+          </div>
+        </div>
+
+        <!-- Coupon panel -->
+        <div id="panel-coupon" class="hidden">
+          <div class="mx-5 mt-4 rounded-3xl bg-glgreen p-6 text-white text-center relative overflow-hidden shadow-card">
+            <div class="absolute inset-x-6 top-1/2 border-t border-dashed border-white/20"></div>
+            <p class="text-[11px] text-glbrown2 font-bold tracking-wide">UAC 카페 전용</p>
+            <p class="font-display text-[26px] mt-2">전 메뉴 Size Up<br>무료 혜택</p>
+            <div class="mt-4 flex justify-center">
+              <i data-lucide="arrow-down-circle" class="w-8 h-8 text-white/70"></i>
+            </div>
+            <button id="coupon-btn" onclick="downloadCoupon()" class="pressable mt-5 w-full bg-glbrown text-white font-bold rounded-2xl py-3.5 flex items-center justify-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i> 쿠폰함에 담기
+            </button>
+            <p class="text-[10.5px] text-white/45 mt-3">발급 후 7일 이내 매장에서 사용 가능</p>
+          </div>
+        </div>
+
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ ECO MAP ============ -->
+      <section id="screen-map" class="screen min-h-full bg-glcream pb-24">
+        <div class="px-5 pt-4 flex items-center justify-between">
+          <p class="font-display text-lg text-glgreen">에코 지도</p>
+          <i data-lucide="sliders-horizontal" class="w-5 h-5 text-glgreen"></i>
+        </div>
+        <div class="mx-5 mt-3 relative rounded-3xl overflow-hidden shadow-card heat-map h-[300px]">
+          <button onclick="openCafeFromMap('uac')" class="pin pin-1 pressable absolute" style="left:46%; top:38%;">
+            <span class="flex items-center gap-1 bg-glgreen text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-soft whitespace-nowrap"><i data-lucide="coffee" class="w-3 h-3"></i> UAC 카페</span>
+          </button>
+          <button onclick="openCafeFromMap('greenbean1')" class="pin pin-2 pressable absolute" style="left:22%; top:60%;">
+            <span class="w-7 h-7 bg-white rounded-full shadow-card flex items-center justify-center text-glgreen"><i data-lucide="coffee" class="w-3.5 h-3.5"></i></span>
+          </button>
+          <button onclick="openCafeFromMap('greenbean2')" class="pin pin-3 pressable absolute" style="left:70%; top:66%;">
+            <span class="w-7 h-7 bg-white rounded-full shadow-card flex items-center justify-center text-glgreen"><i data-lucide="coffee" class="w-3.5 h-3.5"></i></span>
+          </button>
+          <button class="pressable absolute right-3 bottom-3 w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center">
+            <i data-lucide="locate-fixed" class="w-4 h-4 text-glgreen"></i>
+          </button>
+        </div>
+
+        <div class="mx-5 mt-3 rounded-2xl bg-glbrown2 px-4 py-3 flex items-start gap-2.5">
+          <i data-lucide="info" class="w-4 h-4 text-glbrown shrink-0 mt-0.5"></i>
+          <p class="text-[11.5px] text-glgreen leading-relaxed">스마트 열선 수거함 핀은 건조 상태를 실시간으로 보여줘요. 초록 핀을 눌러 카페별 수거함 상태와 혜택을 확인하세요.</p>
+        </div>
+
+        <p class="px-5 mt-5 font-bold text-[14px]">근처 참여 카페</p>
+        <div class="mx-5 mt-2 rounded-3xl bg-white shadow-card divide-y divide-glcream" id="map-cafe-list"></div>
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ COUPON WALLET ============ -->
+      <section id="screen-coupons" class="screen min-h-full bg-glcream pb-24">
+        <div class="px-5 pt-4">
+          <p class="font-display text-lg text-glgreen">쿠폰함</p>
+          <p class="text-[12px] text-glsub mt-0.5">보유한 쿠폰을 매장에서 제시하고 사용하세요</p>
+        </div>
+
+        <div class="mx-5 mt-4 space-y-3" id="coupon-list"></div>
+
+        <div id="coupon-empty" class="hidden mx-5 mt-10 flex flex-col items-center text-center">
+          <div class="w-14 h-14 rounded-2xl bg-glmint flex items-center justify-center mb-3">
+            <i data-lucide="ticket" class="w-6 h-6 text-glgreen2"></i>
+          </div>
+          <p class="text-[13px] font-bold text-glink">아직 보유한 쿠폰이 없어요</p>
+          <p class="text-[11.5px] text-glsub mt-1 leading-relaxed">홈의 ESG 카페 랭킹에서 쿠폰을 받아보거나<br>3일 출석 스탬프를 채워보세요</p>
+        </div>
+
+        <div class="h-4"></div>
+      </section>
+
+      <!-- ============ ADMIN ============ -->
+      <section id="screen-admin" class="screen min-h-full bg-glcream pb-24">
+        <div class="px-5 pt-4 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] text-glsub font-semibold tracking-wide">B2B · 관리자 모드</p>
+            <p class="font-display text-lg text-glgreen -mt-0.5">UAC 카페 성수점</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="goToScreen('home')" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center" title="일반 사용자 모드로 전환"><i data-lucide="user-round" class="w-4 h-4 text-glgreen"></i></button>
+            <button onclick="exitToLogin()" class="pressable w-9 h-9 rounded-full bg-white shadow-card flex items-center justify-center" title="로그아웃 · 역할 다시 선택"><i data-lucide="log-out" class="w-4 h-4 text-glsub"></i></button>
+          </div>
+        </div>
+
+        <!-- admin tabs -->
+        <div class="mx-5 mt-4 bg-white rounded-2xl shadow-card flex text-[13px] px-1.5 pt-1.5 pb-1">
+          <button class="tabbtn admintab active flex-1 py-2.5 text-center" data-tab="bin" onclick="setAdminTab('bin')">수거함<span class="tabline"></span></button>
+          <button class="tabbtn admintab flex-1 py-2.5 text-center" data-tab="marketing" onclick="setAdminTab('marketing')">마케팅<span class="tabline"></span></button>
+          <button class="tabbtn admintab flex-1 py-2.5 text-center" data-tab="esg" onclick="setAdminTab('esg')">ESG<span class="tabline"></span></button>
+        </div>
+
+        <!-- ===== 수거함 탭 ===== -->
+        <div id="admin-panel-bin">
+          <div class="mx-5 mt-4 rounded-3xl bg-glgreen text-white p-5 shadow-card">
+            <div class="flex items-center justify-between">
+              <p class="text-[12.5px] font-bold flex items-center gap-1.5"><i data-lucide="thermometer" class="w-3.5 h-3.5 text-glgreen3"></i> 스마트 열선 수거함 모니터링</p>
+              <span class="text-[10px] bg-white/10 px-2 py-1 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>정상</span>
+            </div>
+
+            <!-- device graphic -->
+            <div class="mt-5 mx-auto" style="width:140px;">
+              <div class="mx-auto rounded-t-lg" style="width:58px; height:16px; background:#0B1F19;"></div>
+              <div class="relative mx-auto overflow-hidden" style="width:140px; height:184px; background:#F5F6F1; border-radius:20px; border:2px solid #0B1F19;">
+                <div class="absolute left-3 right-3 top-4 rounded-2xl overflow-hidden" style="height:96px; background:#0B1F19;">
+                  <div id="bin-fill" class="absolute left-0 right-0 bottom-0" style="height:0%; background:#83996C;"></div>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="font-display text-white text-2xl tabular relative" id="bin-pct-label">0%</span>
+                    <span class="text-[9px] text-white/50 relative mt-0.5">적재율</span>
+                  </div>
+                </div>
+                <div class="absolute left-1/2 -translate-x-1/2 rounded-full" style="top:124px; width:4px; height:30px; background:#DCE3CC;"></div>
+                <div class="absolute inset-x-0 flex items-center justify-center gap-2" style="bottom:14px;">
+                  <span class="w-2 h-2 rounded-full" style="background:#0B1F19;"></span>
+                  <span class="w-2 h-2 rounded-full" style="background:#0B1F19;"></span>
+                </div>
+              </div>
+              <div class="mx-auto rounded-b-md" style="width:96px; height:8px; background:#0B1F19;"></div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-3 text-center">
+              <div>
+                <p class="font-display text-xl tabular leading-none">62<span class="text-sm">℃</span></p>
+                <p class="text-[11px] text-white/55 mt-1">내부 온도 · 최적</p>
+              </div>
+              <div>
+                <p class="font-display text-xl tabular leading-none" id="bin-kg-label">0.0<span class="text-sm">kg / 25kg</span></p>
+                <p class="text-[11px] text-white/55 mt-1">적재 무게</p>
+              </div>
+            </div>
+
+            <div id="bin-alert" class="hidden mt-4 rounded-2xl bg-[#5A2318] px-4 py-3 flex items-start gap-2.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-[#FF9E80] shrink-0 mt-0.5"></i>
+              <p class="text-[12px] text-[#FFD9CC] leading-relaxed">수거함이 80% 이상 찼어요. 위생과 원료 품질 유지를 위해 수거 요청을 진행해주세요.</p>
+            </div>
+
+            <button id="collect-btn" onclick="requestCollection()" class="pressable mt-4 w-full bg-glbrown text-white font-bold rounded-xl py-3 flex items-center justify-center gap-2 text-[13px]">
+              <i data-lucide="truck" class="w-4 h-4"></i> 수거 요청하기
+            </button>
+          </div>
+          <p class="mx-5 mt-3 text-[11px] text-glsub leading-relaxed">수거 요청 시 GROUNDLOOP 수거팀에게 위치와 적재 정보가 자동으로 전달돼요.</p>
+        </div>
+
+        <!-- ===== 마케팅 탭 ===== -->
+        <div id="admin-panel-marketing" class="hidden">
+          <div class="mx-5 mt-4 grid grid-cols-2 gap-2.5">
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glmint flex items-center justify-center"><i data-lucide="users" class="w-4 h-4 text-glgreen2"></i></div>
+              <p class="font-display text-[19px] tabular mt-2.5 leading-none">47<span class="text-[11px]">명</span></p>
+              <p class="text-[10.5px] text-glsub mt-1 leading-tight">오늘 쿠폰 사용 고객</p>
+            </div>
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glbrown2 flex items-center justify-center"><i data-lucide="wallet" class="w-4 h-4 text-glbrown"></i></div>
+              <p class="font-display text-[19px] tabular mt-2.5 leading-none">₩282K</p>
+              <p class="text-[10.5px] text-glsub mt-1 leading-tight">이번 주 쿠폰 연계 매출</p>
+            </div>
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glmint flex items-center justify-center"><i data-lucide="user-plus" class="w-4 h-4 text-glgreen2"></i></div>
+              <p class="font-display text-[19px] tabular mt-2.5 leading-none">12<span class="text-[11px]">명</span></p>
+              <p class="text-[10.5px] text-glsub mt-1 leading-tight">이번 주 신규 고객</p>
+            </div>
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glbrown2 flex items-center justify-center"><i data-lucide="repeat-2" class="w-4 h-4 text-glbrown"></i></div>
+              <p class="font-display text-[19px] tabular mt-2.5 leading-none">36<span class="text-[11px]">%</span></p>
+              <p class="text-[10.5px] text-glsub mt-1 leading-tight">쿠폰 고객 재방문율</p>
+            </div>
+          </div>
+
+          <div class="mx-5 mt-3 rounded-3xl bg-white p-5 shadow-card">
+            <p class="text-[13px] font-bold">월별 쿠폰 연계 매출</p>
+            <div class="mt-4 flex items-end justify-between gap-2 h-20 bars px-1" id="marketing-bars"></div>
+            <div class="mt-1 flex justify-between px-1 text-[10px] text-glsub tabular">
+              <span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== ESG 탭 ===== -->
+        <div id="admin-panel-esg" class="hidden">
+          <div class="mx-5 mt-4 flex items-center gap-1.5">
+            <i data-lucide="badge-check" class="w-4 h-4 text-glgreen2"></i>
+            <p class="text-[13px] font-bold text-glink">이번 달 한눈에 보기</p>
+          </div>
+
+          <div class="mx-5 mt-2.5 grid grid-cols-3 gap-2.5">
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glmint flex items-center justify-center"><i data-lucide="leaf" class="w-4 h-4 text-glgreen2"></i></div>
+              <p class="font-display text-[15px] tabular mt-2.5 leading-none">128<span class="text-[10px]">kg</span></p>
+              <p class="text-[9.5px] text-glsub mt-1 leading-tight">커피박 수거량</p>
+            </div>
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glbrown2 flex items-center justify-center"><i data-lucide="cloud" class="w-4 h-4 text-glbrown"></i></div>
+              <p class="font-display text-[15px] tabular mt-2.5 leading-none">54.3<span class="text-[10px]">kg</span></p>
+              <p class="text-[9.5px] text-glsub mt-1 leading-tight">탄소 절감량</p>
+            </div>
+            <div class="rounded-2xl bg-white shadow-card p-3.5">
+              <div class="w-8 h-8 rounded-xl bg-glmint flex items-center justify-center"><i data-lucide="package" class="w-4 h-4 text-glgreen2"></i></div>
+              <p class="font-display text-[15px] tabular mt-2.5 leading-none">₩82K</p>
+              <p class="text-[9.5px] text-glsub mt-1 leading-tight">폐기비 절감</p>
+            </div>
+          </div>
+
+          <div class="mx-5 mt-3 rounded-3xl bg-white shadow-card p-5 flex items-center justify-between">
+            <div>
+              <p class="text-[11.5px] text-glsub">ESG Score</p>
+              <div class="flex items-end gap-1.5 mt-1">
+                <span class="font-display text-[34px] leading-none text-glgreen">92</span>
+                <span class="text-[13px] text-glsub mb-0.5">/ 100</span>
+              </div>
+              <p class="text-[11px] text-glgreen2 font-bold mt-1.5 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> 지난 달 대비 8p</p>
+            </div>
+            <button onclick="showToast('상세 리포트를 준비 중이에요')" class="pressable text-[11.5px] text-glsub flex items-center gap-0.5">상세보기 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+          </div>
+
+          <div class="mx-5 mt-3 rounded-3xl bg-white shadow-card p-5">
+            <div class="flex items-center justify-between">
+              <p class="text-[13px] font-bold">월별 커피박 수거 추이 (kg)</p>
+              <span class="text-[10.5px] text-glsub bg-glcream px-2.5 py-1 rounded-full flex items-center gap-1">6개월 <i data-lucide="chevron-down" class="w-3 h-3"></i></span>
+            </div>
+            <div class="mt-3 relative" style="height:100px;">
+              <svg viewBox="0 0 280 100" class="w-full h-full absolute inset-0" preserveAspectRatio="none">
+                <polyline points="10,72 58,58 106,64 154,34 202,46 250,12" fill="none" stroke="#83996C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="10" cy="72" r="3" fill="#83996C"/>
+                <circle cx="58" cy="58" r="3" fill="#83996C"/>
+                <circle cx="106" cy="64" r="3" fill="#83996C"/>
+                <circle cx="154" cy="34" r="3" fill="#83996C"/>
+                <circle cx="202" cy="46" r="3" fill="#83996C"/>
+                <circle cx="250" cy="12" r="4" fill="#83996C"/>
+              </svg>
+              <span class="absolute text-[10px] font-bold text-white bg-glgreen2 px-1.5 py-0.5 rounded-full whitespace-nowrap" style="left:89%; top:6%; transform:translate(-50%,-100%);">128kg</span>
+            </div>
+            <div class="flex justify-between text-[9.5px] text-glsub tabular px-0.5 mt-1">
+              <span>2월</span><span>3월</span><span>4월</span><span>5월</span><span>6월</span><span>7월</span>
+            </div>
+          </div>
+
+          <div class="mx-5 mt-3 rounded-3xl bg-white shadow-card p-5 space-y-2.5">
+            <p class="text-[13px] font-bold mb-1">ESG Summary</p>
+            <div class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-glgreen2 shrink-0 mt-0.5"></i><p class="text-[12px] text-glink leading-relaxed">지역 자원순환에 기여했어요</p></div>
+            <div class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-glgreen2 shrink-0 mt-0.5"></i><p class="text-[12px] text-glink leading-relaxed">탄소 배출을 줄이는 데 기여했어요</p></div>
+            <div class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-glgreen2 shrink-0 mt-0.5"></i><p class="text-[12px] text-glink leading-relaxed">친환경 매장 운영을 실천했어요</p></div>
+          </div>
+
+          <button onclick="downloadReport()" class="pressable mx-5 mt-4 w-[calc(100%-40px)] bg-glgreen text-white font-bold rounded-2xl py-3.5 flex items-center justify-center gap-2 text-[13.5px]">
+            <i data-lucide="file-down" class="w-4 h-4"></i> PDF 다운로드
+          </button>
+        </div>
+
+        <div class="h-4"></div>
+      </section>
+
+    </div><!-- /app-root -->
+
+    <!-- bottom nav -->
+    <nav id="bottom-nav" class="hidden absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-glcream px-2 pt-2 pb-6 z-30">
+      <div class="grid grid-cols-4 text-[10.5px] font-medium text-glsub">
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="home" onclick="goToScreen('home')">
+          <span class="navdot"></span><i data-lucide="home" class="navicon w-5 h-5"></i>홈
+        </button>
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="map" onclick="goToScreen('map')">
+          <span class="navdot"></span><i data-lucide="map-pin" class="navicon w-5 h-5"></i>에코지도
+        </button>
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="coupons" onclick="goToScreen('coupons')">
+          <span class="navdot"></span>
+          <span class="relative">
+            <i data-lucide="ticket" class="navicon w-5 h-5"></i>
+            <span id="coupon-badge" class="hidden absolute -top-1 -right-1.5 min-w-[14px] h-[14px] px-[3px] rounded-full bg-glbrown text-white text-[8px] leading-[14px] text-center font-bold">0</span>
+          </span>
+          쿠폰함
+        </button>
+        <button class="navtab pressable flex flex-col items-center gap-1 py-1" data-target="admin" onclick="goToScreen('admin')">
+          <span class="navdot"></span><i data-lucide="building-2" class="navicon w-5 h-5"></i>점주모드
+        </button>
+      </div>
+    </nav>
+
+    <!-- toast -->
+    <div id="toast" class="toast bg-glgreen text-white text-[12.5px] font-semibold px-4 py-2.5 rounded-full shadow-pop flex items-center gap-2 whitespace-nowrap">
+      <i data-lucide="check" class="w-3.5 h-3.5 text-glbrown2"></i><span id="toast-text">완료되었습니다</span>
+    </div>
+
+    <!-- stamp complete modal -->
+    <div id="modal-backdrop" class="modal-backdrop">
+      <div class="absolute inset-0 flex items-center justify-center px-8">
+        <div class="modal-card w-full bg-white rounded-3xl p-7 text-center shadow-pop">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-glbrown2 flex items-center justify-center">
+            <i data-lucide="party-popper" class="w-8 h-8 text-glbrown"></i>
+          </div>
+          <p class="font-display text-xl text-glgreen mt-4">출석 완주!</p>
+          <p class="text-[12.5px] text-glsub mt-1.5 leading-relaxed">3일 연속 출석으로<br><b class="text-glink">Size-Up 쿠폰</b>이 발급되었어요</p>
+          <button onclick="closeModalAndViewCoupons()" class="pressable mt-5 w-full bg-glgreen text-white font-bold rounded-2xl py-3 text-[13.5px]">쿠폰함에서 확인하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- barcode modal -->
+    <div id="barcode-modal-backdrop" class="modal-backdrop">
+      <div class="absolute inset-0 flex items-center justify-center px-8">
+        <div class="modal-card w-full bg-white rounded-3xl p-7 text-center shadow-pop">
+          <p class="text-[11px] text-glsub font-semibold" id="barcode-cafe-label">UAC 카페</p>
+          <p class="font-display text-[17px] text-glink mt-0.5" id="barcode-title-label">Size-Up 무료 쿠폰</p>
+          <div class="mt-5 bg-white border border-glcream rounded-2xl px-4 py-5">
+            <div class="flex items-end justify-center gap-[2px] h-16" id="barcode-bars"></div>
+            <p class="mt-2 text-[11px] tracking-[0.2em] text-glsub tabular" id="barcode-code">000000000000</p>
+          </div>
+          <p class="text-[11.5px] text-glsub mt-4 leading-relaxed">이 바코드를 매장 직원에게 보여주고<br>스캔을 요청하세요</p>
+          <div class="mt-3 inline-flex items-center gap-1.5 text-[11px] text-glbrown font-bold bg-glbrown2 px-3 py-1.5 rounded-full">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 사용 처리 완료 · 재사용 불가
+          </div>
+          <button onclick="closeBarcodeModal()" class="pressable mt-5 w-full bg-glgreen text-white font-bold rounded-2xl py-3 text-[13.5px]">확인</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="text-[11px] text-glink/35 tracking-wide shrink-0">GROUNDLOOP · 커피박 열선형 스마트 수거함 자원순환 플랫폼 프로토타입</p>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const CAFES = [
+  { id:'uac',        name:'UAC 카페',        sub:'성수 커피, 무인위 원두', kg:184, pct:70 },
+  { id:'greenbean1',  name:'그린빈 치키하우스', sub:'성수동 자체 로스팅',    kg:142, pct:56 },
+  { id:'greenbean2',  name:'그린빈 치키하우스', sub:'성수 2가',            kg:142, pct:55 },
+  { id:'greenbean3',  name:'그린빈 치키하우스', sub:'성수 카페거리',        kg:142, pct:95 },
+];
+
+/* ---------------- state ---------------- */
+const state = { role:null, screen:'login', prev:'home', cafeTab:'esg', currentCafeId:'uac', stamps:0, couponIssued:false, collectRequested:false, lastStampDay:null, adminTab:'bin' };
+let countdownSec = 114; // 01:54
+let coupons = [];
+let binFillPct = 84;
+
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+/* ---------------- render helpers ---------------- */
+function renderRanking(){
+  document.getElementById('ranking-list').innerHTML = CAFES.map((c,i)=>`
+    <button onclick="openCafeDetail('${c.id}','esg')" class="pressable w-full flex items-center gap-3 px-4 py-3.5 text-left">
+      <span class="w-7 h-7 shrink-0 flex items-center justify-center rounded-full ${i===0?'bg-glbrown2 text-glbrown font-bold':'bg-glcream text-glsub font-bold'} text-[12px]">${i===0?'1':i+1}</span>
+      <span class="w-10 h-10 rounded-xl bg-glgreen/90 flex items-center justify-center shrink-0"><i data-lucide="coffee" class="w-4 h-4 text-white"></i></span>
+      <span class="flex-1 min-w-0">
+        <span class="block text-[13.5px] font-bold truncate">${c.name}</span>
+        <span class="block text-[11px] text-glsub truncate">${c.kg}kg · ${c.pct}% reduced</span>
+      </span>
+      <i data-lucide="chevron-right" class="w-4 h-4 text-glsub shrink-0"></i>
+    </button>`).join('');
+  document.getElementById('map-cafe-list').innerHTML = CAFES.map(c=>`
+    <button onclick="openCafeDetail('${c.id}','esg')" class="pressable w-full flex items-center gap-3 px-4 py-3.5 text-left">
+      <span class="w-10 h-10 rounded-xl bg-glmint flex items-center justify-center shrink-0"><i data-lucide="coffee" class="w-4 h-4 text-glgreen2"></i></span>
+      <span class="flex-1 min-w-0">
+        <span class="block text-[13.5px] font-bold truncate">${c.name}</span>
+        <span class="block text-[11px] text-glsub truncate">${c.sub} · 건조 정상</span>
+      </span>
+      <span class="text-[10px] font-bold text-glgreen2 bg-glmint px-2 py-1 rounded-full shrink-0">건조중</span>
+    </button>`).join('');
+  lucide.createIcons();
+}
+function renderStamps(){
+  document.getElementById('stamp-slots').innerHTML = [0,1,2].map(i=>`
+    <div class="stamp-slot h-11 rounded-xl border-2 border-dashed border-glcream bg-glcream/60 flex items-center justify-center ${i<state.stamps?'filled':''}">
+      <i data-lucide="check" class="w-4 h-4" style="stroke:${i<state.stamps?'#F3EFE3':'#C9C2AC'}"></i>
+    </div>`).join('');
+  document.getElementById('stamp-count').textContent = state.stamps;
+  lucide.createIcons();
+}
+function renderBars(){
+  const vals=[38,54,46,70,62];
+  document.getElementById('marketing-bars').innerHTML = vals.map(v=>`<div class="flex-1 bg-glgreen2/80 rounded-t-md" style="height:${v}%"></div>`).join('');
+}
+function setAdminTab(tab){
+  state.adminTab = tab;
+  document.querySelectorAll('.admintab').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('admin-panel-bin').classList.toggle('hidden', tab!=='bin');
+  document.getElementById('admin-panel-marketing').classList.toggle('hidden', tab!=='marketing');
+  document.getElementById('admin-panel-esg').classList.toggle('hidden', tab!=='esg');
+}
+function updateBinVisual(){
+  const fillEl = document.getElementById('bin-fill');
+  const labelEl = document.getElementById('bin-pct-label');
+  const kgEl = document.getElementById('bin-kg-label');
+  const alertEl = document.getElementById('bin-alert');
+  if(!fillEl) return;
+  const full = binFillPct >= 80;
+  fillEl.style.height = binFillPct+'%';
+  fillEl.style.backgroundColor = full ? '#B23B2E' : '#83996C';
+  labelEl.textContent = binFillPct+'%';
+  kgEl.innerHTML = (binFillPct*0.25).toFixed(1)+'<span class="text-sm">kg / 25kg</span>';
+  alertEl.classList.toggle('hidden', !full);
+}
+function renderCoupons(){
+  const listEl = document.getElementById('coupon-list');
+  const emptyEl = document.getElementById('coupon-empty');
+  if(coupons.length===0){
+    listEl.innerHTML='';
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  listEl.innerHTML = coupons.map(c=>`
+    <div class="rounded-3xl bg-white shadow-card p-4 flex items-center gap-3 ${c.used?'opacity-50':''}">
+      <div class="w-12 h-12 rounded-2xl bg-glmint flex items-center justify-center shrink-0">
+        <i data-lucide="ticket-percent" class="w-5 h-5 text-glgreen2"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13.5px] font-bold truncate">${c.title}</p>
+        <p class="text-[11px] text-glsub truncate">${c.cafe} · ${c.desc}</p>
+      </div>
+      <button onclick="showBarcode('${c.id}')" ${c.used?'disabled':''} class="pressable shrink-0 text-[11px] font-bold px-3 py-2 rounded-xl ${c.used?'bg-glcream text-glsub':'bg-glbrown text-white'}">${c.used?'사용완료':'사용하기'}</button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function updateCouponBadge(){
+  const n = coupons.filter(c=>!c.used).length;
+  const badge = document.getElementById('coupon-badge');
+  if(!badge) return;
+  if(n>0){ badge.textContent = n>9?'9+':n; badge.classList.remove('hidden'); }
+  else { badge.classList.add('hidden'); }
+}
+function addCoupon(data){
+  coupons.unshift(Object.assign({ id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), used:false }, data));
+  renderCoupons();
+  updateCouponBadge();
+}
+function generateBarcodeBars(seed){
+  let bars = '';
+  for(let i=0;i<34;i++){
+    const code = seed.charCodeAt(i % seed.length) + i*7;
+    const w = (code % 3) + 2; // 2~4px
+    const tall = (code % 5) === 0;
+    bars += `<div class="barcode-bar" style="width:${w}px; height:${tall?'100%':'70%'};"></div>`;
+  }
+  return bars;
+}
+function showBarcode(id){
+  const c = coupons.find(x=>x.id===id);
+  if(!c || c.used) return;
+  c.used = true;
+  renderCoupons();
+  updateCouponBadge();
+  document.getElementById('barcode-cafe-label').textContent = c.cafe;
+  document.getElementById('barcode-title-label').textContent = c.title;
+  document.getElementById('barcode-bars').innerHTML = generateBarcodeBars(c.id);
+  document.getElementById('barcode-code').textContent = c.id.toUpperCase().padEnd(12,'0').slice(0,12);
+  document.getElementById('barcode-modal-backdrop').classList.add('show');
+}
+function closeBarcodeModal(){
+  document.getElementById('barcode-modal-backdrop').classList.remove('show');
+  showToast('쿠폰을 사용 처리했어요');
+}
+
+/* ---------------- navigation ---------------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('app-root').scrollTop = 0;
+  state.screen = id;
+  document.querySelectorAll('.navtab').forEach(b=>{
+    b.classList.toggle('active', b.dataset.target===id);
+  });
+  lucide.createIcons();
+}
+function goToScreen(id){
+  state.prev = state.screen;
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  showScreen(id);
+}
+function goBack(){ showScreen(state.prev); }
+
+function exitToLogin(){
+  state.role = null;
+  document.getElementById('bottom-nav').classList.add('hidden');
+  showScreen('login');
+}
+
+function selectRole(role){
+  state.role = role;
+  renderRanking(); renderStamps(); renderBars(); renderCoupons(); updateCouponBadge();
+  setAdminTab('bin'); updateBinVisual();
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  if(role==='user'){ goToScreen('home'); } else { goToScreen('admin'); }
+}
+
+function openCafeDetail(id, tab){
+  const c = CAFES.find(x=>x.id===id) || CAFES[0];
+  state.currentCafeId = c.id;
+  document.getElementById('cafe-title').textContent = c.name;
+  document.getElementById('cafe-title2').textContent = c.name;
+  state.prev = state.screen;
+  showScreen('cafedetail');
+  setCafeTab(tab||'esg');
+}
+function openCafeFromMap(id){ openCafeDetail(id,'esg'); }
+
+function setCafeTab(tab){
+  state.cafeTab = tab;
+  document.getElementById('tab-esg').classList.toggle('active', tab==='esg');
+  document.getElementById('tab-coupon').classList.toggle('active', tab==='coupon');
+  document.getElementById('panel-esg').classList.toggle('hidden', tab!=='esg');
+  document.getElementById('panel-coupon').classList.toggle('hidden', tab!=='coupon');
+}
+
+function bannerClick(){
+  openCafeDetail('uac','coupon');
+}
+
+/* ---------------- interactions ---------------- */
+function downloadCoupon(){
+  if(state.couponIssued) return;
+  state.couponIssued = true;
+  const btn = document.getElementById('coupon-btn');
+  btn.innerHTML = '<i data-lucide="badge-check" class="w-4 h-4"></i> 발급 완료';
+  btn.classList.add('opacity-70');
+  btn.disabled = true;
+  lucide.createIcons();
+  const cafe = CAFES.find(c=>c.id===state.currentCafeId) || CAFES[0];
+  addCoupon({ cafe: cafe.name, title:'Size-Up 무료 쿠폰', desc: cafe.name+' 전용 · 전 메뉴 사이즈업' });
+  showToast('쿠폰함에 저장됐어요');
+}
+
+function tapStamp(){
+  if(state.stamps>=3) return;
+  const today = todayKey();
+  if(state.lastStampDay === today){
+    showToast('오늘은 이미 출석했어요 · 내일 다시 찍어주세요');
+    return;
+  }
+  state.lastStampDay = today;
+  state.stamps++;
+  renderStamps();
+  if(state.stamps===3){
+    addCoupon({ cafe:'GROUNDLOOP 리워드', title:'3일 출석 Size-Up 쿠폰', desc:'참여 카페 어디서나 사용 가능' });
+    setTimeout(openModal, 250);
+  } else {
+    showToast(`${state.stamps}일차 출석 완료`);
+  }
+}
+function openModal(){ document.getElementById('modal-backdrop').classList.add('show'); }
+function closeModal(){ document.getElementById('modal-backdrop').classList.remove('show'); }
+function closeModalAndViewCoupons(){ closeModal(); goToScreen('coupons'); }
+
+function requestCollection(){
+  const btn = document.getElementById('collect-btn');
+  if(state.collectRequested) return;
+  state.collectRequested = true;
+  btn.innerHTML = '<i data-lucide="clock" class="w-4 h-4"></i> 수거 요청 완료 · 대기중';
+  btn.classList.add('opacity-70');
+  lucide.createIcons();
+  showToast('GROUNDLOOP 수거팀에게 자동으로 연락이 전송됐어요');
+}
+
+function downloadReport(){ showToast('ESG 리포트를 다운로드했어요'); }
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  clearTimeout(toastTimer);
+  document.getElementById('toast-text').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+/* ---------------- countdown ---------------- */
+function tickCountdown(){
+  const el = document.getElementById('countdown-text');
+  if(countdownSec<=0){ el.textContent = '오픈!'; return; }
+  countdownSec--;
+  const m = String(Math.floor(countdownSec/60)).padStart(2,'0');
+  const s = String(countdownSec%60).padStart(2,'0');
+  el.textContent = `${m}:${s}`;
+}
+setInterval(tickCountdown, 1000);
+
+/* ---------------- live-ish dashboard ---------------- */
+let collectedKg = 1420, co2Kg = 420;
+setInterval(()=>{
+  collectedKg += Math.floor(Math.random()*3);
+  co2Kg += Math.floor(Math.random()*2);
+  const c = document.getElementById('stat-collected');
+  const o = document.getElementById('stat-co2');
+  if(c) c.innerHTML = collectedKg.toLocaleString()+'<span class="text-sm">kg</span>';
+  if(o) o.innerHTML = co2Kg.toLocaleString()+'<span class="text-sm">kg</span>';
+}, 4000);
+
+/* ---------------- clock ---------------- */
+function updateClock(){
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+updateClock(); setInterval(updateClock, 15000);
+
+/* ---------------- fit phone to viewport (no scrolling needed) ---------------- */
+function fitPhone(){
+  const phoneEl = document.getElementById('phone');
+  const reserveV = 64;
+  const reserveH = 32;
+  const availH = window.innerHeight - reserveV;
+  const availW = window.innerWidth - reserveH;
+  const scale = Math.min(availH/860, availW/412, 1);
+  phoneEl.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', fitPhone);
+window.addEventListener('orientationchange', fitPhone);
+fitPhone();
+
+/* ---------------- init ---------------- */
+lucide.createIcons();
+</script>
+</body>
+</html>
